@@ -5,7 +5,7 @@ package
 	 * @author Bijan
 	 */
 	import flash.display.Loader;
-	import flash.utils.ByteArray;
+	import flash.utils.*;
 	import flash.display.Sprite;
 	import flash.media.Sound;
 	import flash.net.URLRequest; 
@@ -14,16 +14,16 @@ package
 	
 	public class Tile extends Sprite
 	{
-		private var myWorld:World;
+		public var active:Boolean = false;
 		public var locX:int;
 		public var locY:int;
+		private var myWorld:World;
 		private var gridHeight:int;
 		private var gridWidth:int;
 		private var color:uint = 0x000000;
 		private var brighterColor:uint = 0xFFFFFF;
-		public var active:Boolean = false;
-		public var loader:Loader;
-	
+		
+		private var loader:Loader;
 		private var move:Sound;
 		private var destroy:Sound;
 		private var explosion:MovieClip;
@@ -44,18 +44,19 @@ package
 			move = new Sound(new URLRequest("../assets/move.mp3"));
 			destroy = new Sound(new URLRequest("../assets/destroy.mp3"));
 			
+			//have to use fLoader library here because the swf I found for the explosion is of abnormal type
 			loader = new Loader();
 			var fLoader:ForcibleLoader = new ForcibleLoader(loader);
-            fLoader.load(new URLRequest("../asset/64x48.swf"));
-            fLoader.loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onSwfLoaded);
-            this.addChild(loader);
+            fLoader.load(new URLRequest("../assets/64x48.swf"));
+            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onSwfLoaded);
 		}
 		private function onSwfLoaded(e:Event):void 
         {
                 explosion = e.currentTarget.content as MovieClip;
-				explosion.x = locX;
-				explosion.y = locY;
-				explosion.gotoAndPlay(1);
+				explosion.x = locX + gridWidth / 6;
+				explosion.y = locY + gridHeight / 6;
+				this.addChild(explosion);
+				explosion.stop(); //prevent it from playing upon creation;
         }
 		//change color to indicate selected block is active
 		public function changeColor():void
@@ -95,10 +96,11 @@ package
 				if (spaceTaken)
 				{
 					active = false;
-					//explosion.play();
-					destroy.play();
+					explosion.gotoAndPlay(1);
+					var k = setTimeout(finishExplosion, 3000); //prevent the animation from looping
 					this.graphics.clear();
 					myWorld.tiles.splice(getPosInWorldArray(), 1); //remove it from the tile array to clear up space
+					destroy.play();
 					stage.focus = myWorld;  //refocus so keyboard still works
 				}
 				//otherwise move it
@@ -106,13 +108,19 @@ package
 				{
 					locX = gridX;
 					locY = gridY;
-				
+					explosion.x = locX + gridWidth / 6;
+					explosion.y = locY + gridHeight / 6;
 					active = false;
 					move.play();
 					changeColor();
 					stage.focus = myWorld;
 				}
 			}
+		}
+		
+		private function finishExplosion():void
+		{
+			explosion.stop();
 		}
 		
 		private function getPosInWorldArray():int
