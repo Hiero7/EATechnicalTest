@@ -51,12 +51,12 @@ package
 			loader = new Loader();
 			loader.loadBytes(new Explosion() as ByteArray);
             loader.contentLoaderInfo.addEventListener(Event.INIT, onSwfLoaded);
-            //this.addChild(loader);
+            this.addChild(loader);
 		}
 		private function onSwfLoaded(e:Event):void 
         {
                 explosion = loader.content as MovieClip;
-				this.addChild(explosion);
+				//this.addChild(explosion);
 				explosion.play();
         }
 		//change color to indicate selected block is active
