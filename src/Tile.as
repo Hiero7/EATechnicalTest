@@ -14,8 +14,6 @@ package
 	
 	public class Tile extends Sprite
 	{
-		[Embed(source = "../assets/64x48.swf", mimeType = "application/octet-stream")] public var Explosion:Class;
-		
 		private var myWorld:World;
 		public var locX:int;
 		public var locY:int;
@@ -42,22 +40,22 @@ package
 			this.graphics.beginFill(color);
 			this.graphics.drawRect(startX, startY, gridHeight, gridWidth);
 			this.graphics.endFill();
-			
-			var req:URLRequest = new URLRequest("../assets/move.mp3");
-			move = new Sound(req);
-			req = new URLRequest("../assets/destroy.mp3");
-			destroy = new Sound(req);
+
+			move = new Sound(new URLRequest("../assets/move.mp3"));
+			destroy = new Sound(new URLRequest("../assets/destroy.mp3"));
 			
 			loader = new Loader();
-			loader.loadBytes(new Explosion() as ByteArray);
-            loader.contentLoaderInfo.addEventListener(Event.INIT, onSwfLoaded);
+			var fLoader:ForcibleLoader = new ForcibleLoader(loader);
+            fLoader.load(new URLRequest("../asset/64x48.swf"));
+            fLoader.loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onSwfLoaded);
             this.addChild(loader);
 		}
 		private function onSwfLoaded(e:Event):void 
         {
-                explosion = loader.content as MovieClip;
-				//this.addChild(explosion);
-				explosion.play();
+                explosion = e.currentTarget.content as MovieClip;
+				explosion.x = locX;
+				explosion.y = locY;
+				explosion.gotoAndPlay(1);
         }
 		//change color to indicate selected block is active
 		public function changeColor():void
@@ -97,7 +95,7 @@ package
 				if (spaceTaken)
 				{
 					active = false;
-					explosion.play();
+					//explosion.play();
 					destroy.play();
 					this.graphics.clear();
 					myWorld.tiles.splice(getPosInWorldArray(), 1); //remove it from the tile array to clear up space
